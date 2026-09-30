@@ -46,7 +46,7 @@ More in the [user guide](docs/user-guide.md).
 Requires Python 3.12+.
 
 ```bash
-git clone https://github.com/upiita-Emma-d/tienda-pos.git && cd tienda-pos
+git clone https://github.com/upiita-Emma-d/offline-grocery-pos.git && cd offline-grocery-pos
 python -m venv .venv
 .venv/bin/pip install -r requirements.txt            # Windows: .venv\Scripts\pip install -r requirements.txt
 .venv/bin/python manage.py migrate

@@ -17,7 +17,7 @@ The POS runs on one computer that is both the server and the register. It was de
 
 ## 2. Get the code
 
-- With Git: `git clone https://github.com/upiita-Emma-d/tienda-pos.git`
+- With Git: `git clone https://github.com/upiita-Emma-d/offline-grocery-pos.git`
 - Without Git: on GitHub, **Code → Download ZIP**, then extract it, for example to `C:\TiendaPOS` or `~/tienda-pos`.
 
 ## 3a. Windows 10/11
@@ -44,7 +44,7 @@ The POS runs on one computer that is both the server and the register. It was de
 
 ```bash
 sudo apt install python3 python3-venv git
-git clone https://github.com/upiita-Emma-d/tienda-pos.git ~/tienda-pos
+git clone https://github.com/upiita-Emma-d/offline-grocery-pos.git ~/tienda-pos
 cd ~/tienda-pos
 bash scripts/linux/install.sh --printer-host 192.168.1.50 --backup-dir /media/$USER/USB/tienda-backups
 ```
