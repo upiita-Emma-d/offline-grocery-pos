@@ -12,7 +12,7 @@
 
 - Tablet or Raspberry Pi as the store device → one laptop (ADR-002, ADR-005).
 - Phone camera scanning → not needed; a Bluetooth keyboard-wedge scanner works on the laptop and on iPhones (ADR-002).
-- Epson model and connection → Epson TM-T88V on the LAN, ESC/POS over TCP 9100, 42 columns, Windows-1252 accents (ADR-005).
+- Epson model and connection → Epson TM-T88V on the LAN, ESC/POS over TCP 9100, 42 columns (ADR-005). Accents (Windows-1252) still to be confirmed on paper.
 
 ## Open
 
