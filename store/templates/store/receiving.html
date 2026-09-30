@@ -1,0 +1,47 @@
+{% extends 'base.html' %}{% load static %}
+{% block title %}Recepción · {{ store.name }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><p class="eyebrow">ENTRADA DE MERCANCÍA</p><h1>Recepción</h1><p class="muted">Escanea o teclea cada código y pulsa Enter: cada lectura suma una unidad. El costo por pieza es opcional. Confirma una sola vez al terminar.</p></div>
+  <a href="{% url 'inventory' %}">← Inventario</a>
+</div>
+<input type="hidden" id="request-id" value="{{ request_id }}">
+<div class="checkout-layout">
+  <section class="card">
+    <div class="form-grid">
+      <label>Proveedor<input id="supplier" maxlength="120" placeholder="Ej. Distribuidora, ruta Bimbo" autocomplete="off"></label>
+      <label>Factura o nota (opcional)<input id="document" maxlength="80" autocomplete="off"></label>
+    </div>
+    <label class="label-caps" for="search">CÓDIGO, CLAVE O NOMBRE</label>
+    <input id="search" type="search" placeholder="Escanea o escribe y pulsa Enter" autocomplete="off" autofocus>
+    <p id="scan-status" class="muted" role="status"></p>
+    <div id="unknown" class="unknown-code" hidden>
+      <p><strong>Código <span id="unknown-code"></span> no registrado.</strong> No se agregó nada.</p>
+      <div class="actions"><button type="button" id="show-create">Crear producto nuevo</button><button type="button" id="show-assign">Asignar a producto sin código</button><button type="button" id="dismiss" class="link-button">Descartar</button></div>
+      <form id="create-form" class="stack" hidden>
+        <label>Nombre<input name="name" maxlength="160" required></label>
+        <div class="form-grid">
+          <label>Precio de venta<input name="price" type="number" min="0" step="0.01" inputmode="decimal" required></label>
+          <label>Unidad<select name="unit"><option value="piece">pieza</option><option value="kg">kg (a granel)</option><option value="liter">litro</option><option value="pack">paquete</option></select></label>
+        </div>
+        <label>Clave interna (opcional; vacía usa el código)<input name="sku" maxlength="40"></label>
+        <button class="primary">Crear y agregar</button>
+      </form>
+      <div id="assign-panel" hidden>
+        <label>Buscar producto sin código<input id="assign-search" type="search" autocomplete="off" placeholder="Ej. coca 600"></label>
+        <div id="assign-results" class="results"></div>
+      </div>
+    </div>
+    <div id="results" class="results"></div>
+  </section>
+  <section class="card cart">
+    <div class="row"><h2>Mercancía recibida</h2><button id="clear" class="link-button" type="button">Vaciar</button></div>
+    <div id="lines"><p class="muted">Escanea el primer producto.</p></div>
+    <div class="total"><span>Unidades</span><strong id="total">0</strong></div>
+    <label>Pagado desde la caja $ (opcional)<input id="cash-payment" type="number" min="0" step="0.01" inputmode="decimal" placeholder="Si se le pagó al repartidor del cajón"></label>
+    <button id="confirm" class="primary wide" disabled>Confirmar recepción</button>
+    <p id="status" class="muted" role="status"></p>
+  </section>
+</div>
+<script src="{% static 'store/receiving.js' %}"></script>
+{% endblock %}

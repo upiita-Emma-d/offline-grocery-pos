@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="page-head">
+  <div><p class="eyebrow">FIADO</p><h1>{{ customer.name }}</h1><p class="muted">{{ customer.phone|default:'Sin teléfono' }} · límite {% if customer.credit_limit is not None %}{{ customer.credit_limit|money }}{% else %}sin límite{% endif %}{% if not customer.active %} · sin crédito activo{% endif %}</p></div>
+  <div class="actions">{% if user.is_superuser %}<a href="{% url 'customer_edit' customer.id %}">Editar</a>{% endif %}<a href="{% url 'customers' %}">← Clientes</a></div>
+</div>
+<div class="grid-2">
+  <section class="card">
+    <p class="label-caps">DEBE</p><h2 class="balance">{{ balance|money }}</h2>
+    {% if operates and balance > 0 %}
+    <form method="post" class="stack">{% csrf_token %}<input type="hidden" name="request_id" value="{{ request_id }}">
+      <label>Abono<input name="amount" type="number" min="0.01" step="0.01" max="{{ balance|stringformat:'s' }}" inputmode="decimal" required></label>
+      <label>Forma de pago<select name="payment"><option value="cash">Efectivo (entra al cajón)</option><option value="transfer">Transferencia</option></select></label>
+      <button class="primary">Registrar abono</button>
+    </form>
+    {% elif not operates %}<p class="muted">Abre tu turno para registrar abonos.</p>{% endif %}
+  </section>
+  <section class="card">
+    <h2>Movimientos</h2>
+    {% for date, text, amount, is_charge, url in ledger %}<div class="row"><span>{% if url %}<a href="{{ url }}">{{ text }}</a>{% else %}{{ text }}{% endif %}<small>{{ date|date:'d/m/Y H:i' }}</small></span><strong>{% if is_charge %}+{% else %}−{% endif %}{{ amount|money }}</strong></div>{% empty %}<p class="muted">Sin movimientos.</p>{% endfor %}
+  </section>
+</div>
+{% endblock %}

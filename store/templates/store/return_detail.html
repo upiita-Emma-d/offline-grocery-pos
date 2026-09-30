@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="ticket-actions"><a class="primary button" href="{% url 'checkout' %}">Nueva venta</a><button onclick="window.print()">Imprimir</button><a href="{% url 'sale_ticket' record.sale_id %}">Venta #{{ record.sale_id }}</a></div>
+<article class="ticket">
+  <h1>{{ store.name }}</h1>
+  <p class="ticket-center"><strong>Devolución</strong></p>
+  <p>Folio D-{{ record.id }}<br>Venta original #{{ record.sale_id }}<br>{{ record.created_at|date:'d/m/Y H:i' }}<br>Registró: {{ record.user.username }} · autorizó: {{ record.authorized_by.username }}</p>
+  <hr>
+  {% for line in lines %}<div><strong>{{ line.sale_line.name }}</strong><span>{{ line.quantity|floatformat:"-3" }} × {{ line.sale_line.unit_price|money }} <b>{{ line.subtotal|money }}</b></span><small>{% if line.restock %}Regresa al anaquel{% else %}Merma{% endif %}</small></div>{% endfor %}
+  <hr>
+  <div class="ticket-total">REEMBOLSO <b>{{ record.total|money }}</b></div>
+  <p>Medio: {{ record.get_method_display }}{% if record.sale.customer %} · {{ record.sale.customer.name }}{% endif %}</p>
+  <p>Motivo: {{ record.reason }}</p>
+</article>
+{% endblock %}

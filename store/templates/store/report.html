@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="page-head">
+  <div><p class="eyebrow">REPORTE</p><h1>{% if date_from == date_to %}{{ date_from|date:'l d/m/Y' }}{% else %}{{ date_from|date:'d/m/Y' }} – {{ date_to|date:'d/m/Y' }}{% endif %}</h1><p class="muted">Ventas, devoluciones, efectivo y productos del periodo.</p></div>
+</div>
+<form method="get" class="search-bar"><input type="date" name="from" value="{{ date_from|date:'Y-m-d' }}"><input type="date" name="to" value="{{ date_to|date:'Y-m-d' }}"><button>Ver</button></form>
+<div class="grid-3">
+  <article class="card"><p class="label-caps">VENTA NETA</p><h2>{{ net|money }}</h2><p>{{ totals.n }} ventas por {{ totals.t|money }} − devoluciones {{ returns.t|money }} ({{ returns.n }}).</p>{% if average %}<p>Ticket promedio {{ average|money }}</p>{% endif %}</article>
+  <article class="card"><p class="label-caps">POR FORMA DE PAGO</p>{% for label, n, t in by_payment %}<div class="row"><span>{{ label }} ({{ n }})</span><strong>{{ t|money }}</strong></div>{% empty %}<p class="muted">Sin ventas.</p>{% endfor %}</article>
+  <article class="card"><p class="label-caps">MARGEN</p>{% if margin is not None %}<h2>{{ margin|money }}</h2><p>{{ margin_pct }}% sobre ventas con costo registrado ({{ cost_coverage }}% de lo vendido).</p>{% else %}<p class="muted">Sin costos registrados. Captura el costo en Recepción para ver margen.</p>{% endif %}</article>
+</div>
+<div class="grid-2">
+  <section class="card"><h2>Productos más vendidos</h2>{% for p in top_products %}<div class="row"><span>{{ p.product__name }}<small>{{ p.quantity|floatformat:"-3" }} {{ p.product__unit|unit_label }}</small></span><strong>{{ p.amount|money }}</strong></div>{% empty %}<p class="muted">Sin ventas.</p>{% endfor %}</section>
+  <section class="card">
+    <h2>Turnos</h2>
+    {% for s in shifts %}<div class="row"><span>#{{ s.id }} · {{ s.cashier.username }}<small>{{ s.opened_at|date:'H:i' }}{% if s.closed_at %} – {{ s.closed_at|date:'H:i' }}{% endif %}</small></span>{% if s.closed_at %}<a href="{% url 'shift_report' s.id %}">Diferencia {{ s.difference|money }}</a>{% else %}<span class="pill">Abierto</span>{% endif %}</div>{% empty %}<p class="muted">Sin turnos.</p>{% endfor %}
+    <h2 style="margin-top:22px">Salidas de efectivo</h2>
+    {% for label, total in cash_outs %}<div class="row"><span>{{ label }}</span><strong>−{{ total|money }}</strong></div>{% empty %}<p class="muted">Sin salidas.</p>{% endfor %}
+    <h2 style="margin-top:22px">Renglones quitados antes de cobrar</h2>
+    {% for r in removed %}<div class="row"><span>{{ r.user__username }}</span><strong>{{ r.n }}</strong></div>{% empty %}<p class="muted">Ninguno.</p>{% endfor %}
+  </section>
+</div>
+{% endblock %}

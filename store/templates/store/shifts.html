@@ -1,0 +1,51 @@
+{% extends 'base.html' %}{% load static %}
+{% block content %}
+<div class="page-head">
+  <div><p class="eyebrow">CONTROL DE CAJA</p><h1>Turnos</h1><p class="muted">El efectivo del cajón es responsabilidad de quien abre el turno. Puede haber varios turnos en el día, uno a la vez.</p></div>
+</div>
+<div class="grid-2">
+  <section class="card">
+    {% if shift %}
+    <h2>Turno #{{ shift.id }} abierto</h2>
+    <p>Operador: <strong>{{ shift.cashier.username }}</strong> · desde {{ shift.opened_at|date:'d/m H:i' }}</p>
+    <p>Fondo inicial: {{ shift.opening_float|money }}</p>
+    {% if can_operate %}
+    <form method="post" class="stack" onsubmit="return confirm('¿Cerrar el turno con el efectivo capturado?')">{% csrf_token %}
+      <input type="hidden" name="action" value="close">
+      {% include 'store/_cash_count.html' with title='Efectivo contado al cerrar (incluye el fondo)' %}
+      <p class="muted">Cuenta antes de cerrar. El esperado y la diferencia aparecen en el corte, después de confirmar.</p>
+      <button class="primary">Cerrar turno e imprimir corte</button>
+    </form>
+    {% endif %}
+    {% else %}
+    <h2>Abrir turno</h2>
+    <form method="post" class="stack">{% csrf_token %}
+      <input type="hidden" name="action" value="open">
+      {% include 'store/_cash_count.html' with title='Fondo inicial recibido' %}
+      <button class="primary">Abrir turno</button>
+    </form>
+    {% endif %}
+  </section>
+  <section class="card">
+    {% if shift and can_operate %}
+    <h2>Salida de efectivo</h2>
+    <form method="post" class="stack">{% csrf_token %}
+      <input type="hidden" name="action" value="cash_out"><input type="hidden" name="request_id" value="{{ request_id }}">
+      <label>Tipo<select name="kind">{% for key, label in cash_out_kinds %}<option value="{{ key }}">{{ label }}</option>{% endfor %}</select></label>
+      <label>Importe<input name="cash_out_amount" type="number" min="0.01" step="0.01" inputmode="decimal" required></label>
+      <label>Concepto<input name="concept" maxlength="200" minlength="3" required placeholder="Ej. Repartidor Bimbo, nota 1234"></label>
+      <button>Registrar salida</button>
+    </form>
+    <h2 style="margin-top:22px">Salidas del turno</h2>
+    {% for c in cash_outs %}<div class="row"><span>{{ c.get_kind_display }} · {{ c.concept }}<small>{{ c.created_at|date:'H:i' }} · {{ c.user.username }}</small></span><strong>−{{ c.amount|money }}</strong></div>{% empty %}<p class="muted">Sin salidas.</p>{% endfor %}
+    {% endif %}
+    <h2 style="margin-top:22px">Historial</h2>
+    {% for s in history %}
+    <div class="count-item"><strong>Turno #{{ s.id }} · {{ s.cashier.username }}</strong><small>{{ s.opened_at|date:'d/m H:i' }}{% if s.closed_at %} – {{ s.closed_at|date:'d/m H:i' }}{% endif %}</small>
+      {% if s.closed_at %}<p>Contado {{ s.counted_cash|money }} · diferencia <b>{{ s.difference|money }}</b> · <a href="{% url 'shift_report' s.id %}">Ver corte</a></p>{% else %}<p>Abierto</p>{% endif %}
+    </div>
+    {% empty %}<p class="muted">Todavía no hay turnos.</p>{% endfor %}
+  </section>
+</div>
+<script src="{% static 'store/cash_count.js' %}"></script>
+{% endblock %}

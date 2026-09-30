@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block title %}Corte turno #{{ shift.id }}{% endblock %}
+{% block content %}
+<div class="ticket-actions">
+  <a href="{% url 'shifts' %}">← Turnos</a>
+  <button onclick="window.print()">Imprimir corte</button>
+  {% if network_printer %}
+  <form method="post" action="{% url 'shift_reprint' shift.id 'close' %}">{% csrf_token %}<button>Reimprimir en Epson</button></form>
+  <form method="post" action="{% url 'shift_reprint' shift.id 'open' %}">{% csrf_token %}<button>Reimprimir apertura</button></form>
+  {% endif %}
+</div>
+<article class="ticket shift-report">
+  <h1>{{ store.name }}</h1>
+  <p class="ticket-center"><strong>Corte de turno</strong></p>
+  <p>Turno #{{ shift.id }} · {{ shift.cashier.username }}<br>{{ shift.opened_at|date:'d/m/Y H:i' }} – {{ shift.closed_at|date:'d/m/Y H:i' }}</p>
+  <hr>
+  <h3>Ventas ({{ summary.sale_count }})</h3>
+  {% for label, n, t in summary.sales %}<div><span>{{ label }} ({{ n }}) <b>{{ t|money }}</b></span></div>{% empty %}<p>Sin ventas.</p>{% endfor %}
+  <div><span>Total vendido <b>{{ summary.total_sales|money }}</b></span></div>
+  {% if summary.returns %}<h3>Devoluciones</h3>{% for label, n, t in summary.returns %}<div><span>{{ label }} ({{ n }}) <b>−{{ t|money }}</b></span></div>{% endfor %}{% for r in returns %}<small>#{{ r.id }} venta #{{ r.sale_id }} · autorizó {{ r.authorized_by.username }} · {{ r.reason }}</small>{% endfor %}{% endif %}
+  {% if cash_outs %}<h3>Salidas de efectivo</h3>{% for c in cash_outs %}<div><span>{{ c.get_kind_display }}: {{ c.concept|truncatechars:28 }} <b>−{{ c.amount|money }}</b></span></div>{% endfor %}{% endif %}
+  {% if summary.credit_payments %}<h3>Abonos de fiado</h3>{% for label, n, t in summary.credit_payments %}<div><span>{{ label }} ({{ n }}) <b>{{ t|money }}</b></span></div>{% endfor %}{% endif %}
+  <hr>
+  <h3>Efectivo</h3>
+  <div><span>Fondo inicial <b>{{ shift.opening_float|money }}</b></span></div>
+  <div><span>+ Ventas en efectivo <b>{{ summary.cash_sales|money }}</b></span></div>
+  <div><span>− Devoluciones en efectivo <b>{{ summary.cash_returns|money }}</b></span></div>
+  <div><span>− Salidas <b>{{ summary.total_cash_outs|money }}</b></span></div>
+  <div><span>+ Abonos en efectivo <b>{{ summary.cash_payments|money }}</b></span></div>
+  <div class="ticket-total">ESPERADO <b>{{ shift.expected_cash|money }}</b></div>
+  <div class="ticket-total">CONTADO <b>{{ shift.counted_cash|money }}</b></div>
+  <div class="ticket-total">DIFERENCIA <b>{{ shift.difference|money }}</b></div>
+  {% if closing_count %}<h3>Arqueo de cierre</h3>{% for label, pieces, amount in closing_count %}<div><span>{{ label }} × {{ pieces }} <b>{{ amount|money }}</b></span></div>{% endfor %}{% endif %}
+  {% if opening_count %}<h3>Fondo recibido</h3>{% for label, pieces, amount in opening_count %}<div><span>{{ label }} × {{ pieces }} <b>{{ amount|money }}</b></span></div>{% endfor %}{% endif %}
+  <hr>
+  <p>Renglones quitados antes de cobrar: {{ summary.removed }}</p>
+  {% for r in removed %}<small>{{ r.created_at|date:'H:i' }} {{ r.get_reason_display }}: {{ r.product.name|truncatechars:22 }} × {{ r.quantity|floatformat:"-3" }}</small>{% endfor %}
+  <p class="center">Firma de quien entrega<br><br>______________________</p>
+  <p class="center">Firma de quien recibe<br><br>______________________</p>
+</article>
+{% endblock %}

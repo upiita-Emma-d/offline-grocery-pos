@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="page-head">
+  <div><p class="eyebrow">DEVOLUCIÓN DE VENTA #{{ sale.id }}</p><h1>Devolver productos</h1><p class="muted">{{ sale.created_at|date:'d/m/Y H:i' }} · cobró {{ sale.cashier.username }} · {{ sale.get_payment_display }}{% if sale.customer %} ({{ sale.customer.name }}){% endif %} · total {{ sale.total|money }}</p></div>
+  <a href="{% url 'sale_ticket' sale.id %}">← Ticket</a>
+</div>
+<form method="post" class="card form-card">{% csrf_token %}
+  <input type="hidden" name="request_id" value="{{ request_id }}">
+  <p class="notice">Se reembolsa por el mismo medio: {% if sale.payment == 'cash' %}<strong>el efectivo sale del cajón del turno abierto</strong>{% if not shift %} — <strong>no hay turno abierto; ábrelo antes</strong>{% endif %}{% elif sale.payment == 'credit' %}<strong>se descuenta de la deuda de {{ sale.customer.name }}</strong>{% else %}<strong>{{ sale.get_payment_display|lower }}; el reembolso se hace fuera del sistema</strong>{% endif %}. Para un cambio de producto, registra la devolución y luego una venta nueva.</p>
+  <div class="table-wrap"><table>
+    <tr><th>Producto</th><th>Vendido</th><th>Disponible</th><th>Devolver</th><th>¿Regresa al anaquel?</th></tr>
+    {% for line in lines %}
+    <tr>
+      <td><strong>{{ line.name }}</strong><small>{{ line.unit_price|money }} · subtotal {{ line.subtotal|money }}</small></td>
+      <td>{{ line.quantity|floatformat:"-3" }}</td><td>{{ line.remaining|floatformat:"-3" }}</td>
+      <td>{% if line.remaining > 0 %}<input name="quantity_{{ line.id }}" type="number" min="0" max="{{ line.remaining|stringformat:'s' }}" step="0.001" inputmode="decimal" placeholder="0">{% else %}Devuelto{% endif %}</td>
+      <td>{% if line.remaining > 0 %}<select name="restock_{{ line.id }}"><option value="1">Sí, está en buen estado</option><option value="0">No, merma (dañado o caducado)</option></select>{% endif %}</td>
+    </tr>
+    {% endfor %}
+  </table></div>
+  <label>Motivo<input name="reason" maxlength="200" minlength="4" required placeholder="Ej. Producto caducado, cliente se equivocó"></label>
+  {% if not user.is_superuser %}
+  <fieldset class="authorization"><legend>Autorización del propietario</legend>
+    <div class="form-grid"><label>Usuario<input name="owner_username" autocomplete="off" required></label><label>Contraseña<input name="owner_password" type="password" autocomplete="off" required></label></div>
+  </fieldset>
+  {% endif %}
+  <button class="primary">Registrar devolución</button>
+</form>
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="page-head">
+  <div><p class="eyebrow">CATÁLOGO</p><h1>{% if product %}Editar {{ product.name }}{% else %}Nuevo producto{% endif %}</h1><p class="muted">{% if product %}{% if product.active %}Activo en caja{% else %}Dado de baja: no aparece en caja{% endif %}{% endif %}</p></div>
+  <a href="{% url 'catalog' %}">← Volver</a>
+</div>
+<section class="card form-card">
+  <form method="post" enctype="multipart/form-data">{% csrf_token %}{{ form.non_field_errors }}
+    <div class="form-grid">{% for field in form %}<label>{{ field.label }}{{ field }}{{ field.errors }}</label>{% endfor %}</div>
+    <button class="primary">Guardar producto</button>
+  </form>
+</section>
+{% if product %}
+<section class="card form-card" style="margin-top:20px">
+  <h2>{% if product.active %}Dar de baja{% else %}Reactivar{% endif %}</h2>
+  <p class="muted">{% if product.active %}La baja conserva el historial y requiere existencia cero.{% else %}La reactivación vuelve a ofrecer el producto en caja.{% endif %}</p>
+  <form method="post" action="{% url 'product_status' product.id %}">{% csrf_token %}
+    <label>Motivo<input name="reason" maxlength="200" minlength="4" required></label>
+    <button>{% if product.active %}Dar de baja{% else %}Reactivar producto{% endif %}</button>
+  </form>
+  {% for change in status_changes %}<p class="muted">{{ change.get_action_display }} · {{ change.created_at|date:'d/m/Y H:i' }} · {{ change.user.username }} · {{ change.reason }}</p>{% endfor %}
+</section>
+{% endif %}
+{% endblock %}

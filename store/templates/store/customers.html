@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="page-head">
+  <div><p class="eyebrow">FIADO</p><h1>Clientes</h1><p class="muted">Solo clientes registrados pueden comprar a fiado. El saldo se calcula de ventas, devoluciones y abonos.</p></div>
+  {% if user.is_superuser %}<a class="primary button" href="{% url 'customer_new' %}">+ Nuevo cliente</a>{% endif %}
+</div>
+<div class="card table-wrap">
+  <table>
+    <tr><th>Cliente</th><th>Límite</th><th>Debe</th><th></th></tr>
+    {% for c, balance in customers %}<tr><td><strong>{{ c.name }}</strong><small>{{ c.phone|default:'' }}{% if not c.active %} · Sin crédito{% endif %}</small></td><td>{% if c.credit_limit is not None %}{{ c.credit_limit|money }}{% else %}—{% endif %}</td><td><strong>{{ balance|money }}</strong></td><td><a href="{% url 'customer_detail' c.id %}">Ver / abonar →</a></td></tr>{% empty %}<tr><td colspan="4">Sin clientes de fiado.</td></tr>{% endfor %}
+  </table>
+  <p class="total"><span>Total por cobrar</span><strong>{{ total|money }}</strong></p>
+</div>
+{% endblock %}

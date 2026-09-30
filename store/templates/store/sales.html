@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="page-head">
+  <div><p class="eyebrow">HISTORIAL</p><h1>Ventas</h1><p class="muted">Cada folio conserva precios, quién cobró, forma de pago y sus devoluciones.</p></div>
+  {% if user.is_superuser %}<a class="button" href="{% url 'report' %}">Reporte del día →</a>{% endif %}
+</div>
+<form method="get" class="card filters">
+  <label>Desde<input type="date" name="from" value="{{ filters.from }}"></label>
+  <label>Hasta<input type="date" name="to" value="{{ filters.to }}"></label>
+  <label>Folio<input name="folio" value="{{ filters.folio }}" inputmode="numeric"></label>
+  <label>Turno<input name="shift" value="{{ filters.shift }}" inputmode="numeric"></label>
+  {% if cashiers %}<label>Cobró<select name="cashier"><option value="">Todos</option>{% for c in cashiers %}<option value="{{ c.id }}"{% if filters.cashier == c.id|stringformat:'d' %} selected{% endif %}>{{ c.username }}</option>{% endfor %}</select></label>{% endif %}
+  <label>Pago<select name="payment"><option value="">Todos</option>{% for key, label in payments %}<option value="{{ key }}"{% if filters.payment == key %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+  <div class="actions"><button class="primary">Filtrar</button><a href="{% url 'sales' %}">Limpiar</a></div>
+</form>
+<p class="muted">{{ summary.n }} venta{{ summary.n|pluralize }} · total {{ summary.total|money }}{% if summary.n > 300 %} · se muestran las 300 más recientes{% endif %}</p>
+<div class="card table-wrap">
+  <table>
+    <tr><th>Folio</th><th>Fecha</th><th>Turno</th><th>Cobró</th><th>Pago</th><th>Total</th><th>Devuelto</th><th></th></tr>
+    {% for s in sales %}
+    <tr><td><strong>#{{ s.id }}</strong></td><td>{{ s.created_at|date:'d/m/Y H:i' }}</td><td>#{{ s.shift_id }}</td><td>{{ s.cashier.username }}</td><td>{{ s.get_payment_display }}{% if s.customer %}<small>{{ s.customer.name }}</small>{% endif %}</td><td>{{ s.total|money }}</td><td>{% if s.returned %}−{{ s.returned|money }}{% else %}—{% endif %}</td><td><a href="{% url 'sale_ticket' s.id %}">Ticket →</a></td></tr>
+    {% empty %}<tr><td colspan="8">Sin ventas con estos filtros.</td></tr>{% endfor %}
+  </table>
+</div>
+{% endblock %}

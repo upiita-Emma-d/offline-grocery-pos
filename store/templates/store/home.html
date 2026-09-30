@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="page-head">
+  <div><p class="eyebrow">RESUMEN DEL DÍA</p><h1>Mostrador</h1><p class="muted">Ventas, turnos e inventario desde una sola pantalla.</p></div>
+  <a class="primary button" href="{% url 'checkout' %}">Ir a caja →</a>
+</div>
+<div class="grid-3">
+  <article class="card">
+    <p class="label-caps">TURNO ACTUAL</p>
+    {% if shift %}<h2>Abierto</h2><p>{{ shift.cashier.username }} · desde {{ shift.opened_at|date:'H:i' }}</p>{% else %}<h2>Sin turno</h2><p>Abre un turno antes de cobrar.</p>{% endif %}
+    <a href="{% url 'shifts' %}">Gestionar turno →</a>
+  </article>
+  <article class="card">
+    <p class="label-caps">ÚLTIMAS VENTAS</p><h2>{{ recent|length }}</h2><p>Consulta folios y reimprime tickets.</p>
+    <a href="{% url 'sales' %}">Ver ventas →</a>
+  </article>
+  <article class="card">
+    <p class="label-caps">EXISTENCIAS BAJAS</p><h2>{{ low|length }}</h2><p>Productos bajo su mínimo en esta vista.</p>
+    {% if user.is_superuser %}<a href="{% url 'inventory' %}">Ver inventario →</a>{% endif %}
+  </article>
+</div>
+<div class="grid-2">
+  <section class="card">
+    <h2>Actividad reciente</h2>
+    {% for sale in recent %}<div class="row"><span>Folio #{{ sale.id }} <small>{{ sale.created_at|date:'d/m H:i' }}</small></span><strong>{{ sale.total|money }}</strong></div>{% empty %}<p class="muted">Aún no hay ventas.</p>{% endfor %}
+  </section>
+  <section class="card">
+    {% if negative %}
+    <h2>Existencias negativas</h2>
+    <p class="notice error">Se vendió más de lo registrado. Falta una recepción o hay un error de captura: revisa y cuenta.</p>
+    {% for p in negative %}<div class="row"><span>{{ p.name }}</span><strong>{{ p.stock|floatformat:"-3" }} {{ p.unit_label }}</strong></div>{% endfor %}
+    {% endif %}
+    <h2>Por revisar</h2>
+    {% for p in low %}<div class="row"><span>{{ p.name }}</span><strong>{{ p.stock|floatformat:"-3" }} {{ p.unit_label }}</strong></div>{% empty %}<p class="muted">Sin alertas de stock mínimo.</p>{% endfor %}
+  </section>
+</div>
+{% endblock %}

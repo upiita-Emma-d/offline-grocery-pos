@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="page-head">
+  <div><p class="eyebrow">CONFIGURACIÓN</p><h1>Datos del ticket</h1><p class="muted">Se imprimen en tickets de venta, aperturas y cortes, en la Epson y en pantalla.</p></div>
+</div>
+<div class="grid-2">
+  <section class="card form-card"><form method="post">{% csrf_token %}{{ form.non_field_errors }}{% for field in form %}<label>{{ field.label }}{{ field }}{% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}{{ field.errors }}</label>{% endfor %}<button class="primary">Guardar</button></form></section>
+  <section>
+    <p class="label-caps">VISTA PREVIA</p>
+    <article class="ticket">
+      <h1>{{ store.name }}</h1>
+      {% for line in store.header_lines %}<p class="ticket-center">{{ line }}</p>{% endfor %}
+      <p class="ticket-center"><strong>Ticket de venta</strong></p><hr>
+      <div><span>Folio: 123 <b>29/09/2026 17:00</b></span></div><hr>
+      <div><strong>Coca-Cola 600 ml</strong><span>&nbsp;&nbsp;2 × $22.00 <b>$44.00</b></span></div><hr>
+      <div class="ticket-total">TOTAL <b>$44.00</b></div>
+      {% for line in store.footer_lines %}<p class="ticket-center">{{ line }}</p>{% endfor %}
+    </article>
+  </section>
+</div>
+{% endblock %}

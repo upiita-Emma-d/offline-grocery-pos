@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="page-head">
+  <div><p class="eyebrow">RECEPCIÓN #{{ receipt.id }}</p><h1>{{ receipt.supplier }}</h1><p class="muted">{% if receipt.document %}Documento {{ receipt.document }} · {% endif %}{{ receipt.created_at|date:'d/m/Y H:i' }} · {{ receipt.user.username }}</p></div>
+  <div class="actions"><a class="primary button" href="{% url 'receiving' %}">+ Nueva recepción</a><a href="{% url 'inventory' %}">Inventario</a></div>
+</div>
+<section class="card table-wrap">
+  <table>
+    <thead><tr><th>Producto</th><th>Clave</th><th>Cantidad</th><th>Costo c/u</th><th>Importe</th></tr></thead>
+    <tbody>{% for m in lines %}<tr><td><strong>{{ m.product.name }}</strong></td><td>{{ m.product.sku }}</td><td>{{ m.quantity|floatformat:"-3" }} {{ m.product.unit_label }}</td><td>{% if m.unit_cost is not None %}{{ m.unit_cost|money }}{% else %}—{% endif %}</td><td>{% if m.amount is not None %}{{ m.amount|money }}{% else %}—{% endif %}</td></tr>{% endfor %}</tbody>
+  </table>
+  {% if total_cost %}<p class="total"><span>Costo capturado</span><strong>{{ total_cost|money }}</strong></p>{% endif %}
+  {% for p in payments %}<p class="notice">Pagado desde caja en turno #{{ p.shift_id }}: <strong>{{ p.amount|money }}</strong></p>{% endfor %}
+</section>
+{% endblock %}

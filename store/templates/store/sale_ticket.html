@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="ticket-actions">
+  <a class="primary button" href="{% url 'checkout' %}" autofocus>Nueva venta</a>
+  <button onclick="window.print()">Imprimir ticket</button>
+  {% if network_printer %}<form method="post" action="{% url 'sale_reprint' sale.id %}">{% csrf_token %}<button>Reenviar a Epson</button></form>{% endif %}
+  <a href="{% url 'sale_return' sale.id %}">Devolución</a>
+</div>
+<article class="ticket">
+  <h1>{{ store.name }}</h1>
+  {% for line in store.header_lines %}<p class="ticket-center">{{ line }}</p>{% endfor %}
+  <p class="ticket-center"><strong>Ticket de venta</strong></p>
+  <hr>
+  <div><span>Folio: {{ sale.id }} <b>{{ sale.created_at|date:'d/m/Y H:i' }}</b></span></div>
+  <p class="ticket-line">Atendió: {{ sale.cashier.username }}</p>
+  <hr>
+  {% for line in lines %}<div><strong>{{ line.name }}</strong><span>&nbsp;&nbsp;{{ line.quantity|floatformat:"-3" }} × {{ line.unit_price|money }} <b>{{ line.subtotal|money }}</b></span></div>{% endfor %}
+  <hr>
+  <p class="ticket-line">Artículos: {{ pieces|floatformat:"-3" }}{% if bulk %} + {{ bulk }} a granel{% endif %}</p>
+  <div class="ticket-total">TOTAL <b>{{ sale.total|money }}</b></div>
+  <p>Pago: {{ sale.get_payment_display }}</p>
+  {% if sale.customer %}<p>Cliente: {{ sale.customer.name }}<br>Saldo pendiente: {{ balance|money }}</p>{% endif %}
+  {% for r in returns %}<p class="returned">Devolución #{{ r.id }} · {{ r.created_at|date:'d/m H:i' }} · −{{ r.total|money }}</p>{% endfor %}
+  {% for line in store.footer_lines %}<p class="ticket-center">{{ line }}</p>{% endfor %}
+</article>
+{% endblock %}

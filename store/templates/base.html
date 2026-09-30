@@ -1,0 +1,35 @@
+{% load static %}<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}{{ store.name }} · POS{% endblock %}</title>
+<link rel="stylesheet" href="{% static 'store/style.css' %}">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23156b4c'/%3E%3C/svg%3E">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="{% url 'home' %}">◼ {{ store.name|upper }} <span>POS</span></a>
+  {% if user.is_authenticated %}
+  <nav>
+    <a href="{% url 'checkout' %}">Caja</a>
+    <a href="{% url 'shifts' %}">Turnos</a>
+    <a href="{% url 'sales' %}">Ventas</a>
+    <a href="{% url 'customers' %}">Fiado</a>
+    {% if user.is_superuser %}
+    <a href="{% url 'catalog' %}">Productos</a>
+    <a href="{% url 'inventory' %}">Inventario</a>
+    <a href="{% url 'receiving' %}">Recepción</a>
+    <a href="{% url 'report' %}">Reporte</a>
+    <a href="{% url 'store_settings' %}">Configuración</a>
+    {% endif %}
+  </nav>
+  <div class="account">{{ user.username }} <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="logout">Salir</button></form></div>
+  {% endif %}
+</header>
+<main>
+  {% if messages %}<div class="messages">{% for message in messages %}<div class="notice {{ message.tags }}">{{ message }}</div>{% endfor %}</div>{% endif %}
+  {% block content %}{% endblock %}
+</main>
+</body>
+</html>

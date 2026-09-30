@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="page-head">
+  <div><p class="eyebrow">CONTROL DE MERCANCÍA</p><h1>Inventario</h1><p class="muted">La mercancía entra por Recepción. Aquí se cuenta: un conteo no cambia el saldo hasta autorizar el ajuste.</p></div>
+  <a class="primary button" href="{% url 'receiving' %}">Recibir mercancía →</a>
+</div>
+<div class="grid-2">
+  <section class="card">
+    <h2>Conteo físico</h2>
+    <form method="get" class="search-bar"><input name="q" value="{{ term }}" placeholder="Escanea código o escribe clave o nombre" autocomplete="off" autofocus><button>Buscar</button></form>
+    {% if term and not found %}<p class="notice warning">Sin coincidencias para «{{ term }}».</p>{% endif %}
+    {% for p in found %}
+    <form method="post" class="count-row">{% csrf_token %}
+      <input type="hidden" name="action" value="count"><input type="hidden" name="product_id" value="{{ p.id }}"><input type="hidden" name="q" value="{{ term }}">
+      <div><strong>{{ p.name }}</strong><small>{{ p.sku }} · saldo {{ p.stock|floatformat:"-3" }} {{ p.unit_label }}</small></div>
+      <input name="quantity" type="number" min="0" step="0.001" inputmode="decimal" required aria-label="Cantidad contada de {{ p.name }}" placeholder="Contado"{% if exact %} autofocus{% endif %}>
+      <button>Registrar</button>
+    </form>
+    {% endfor %}
+  </section>
+  <section class="card">
+    <h2>Conteos recientes</h2>
+    {% for c in counts %}
+    <div class="count-item">
+      <strong>{{ c.product.name }}</strong><small>Conteo #{{ c.id }} · {{ c.created_at|date:'d/m H:i' }} · {{ c.user.username }}</small>
+      <p>Esperado {{ c.expected|floatformat:"-3" }} · contado {{ c.counted|floatformat:"-3" }} · diferencia <b>{{ c.difference|floatformat:"-3" }}</b></p>
+      {% if c.adjustment %}<span class="pill">Ajustado</span>
+      {% elif c.superseded %}<span class="muted">Reemplazado por un conteo posterior</span>
+      {% elif c.difference %}<form method="post">{% csrf_token %}<input type="hidden" name="action" value="adjust"><input type="hidden" name="count_id" value="{{ c.id }}"><button>Autorizar ajuste de {{ c.difference|floatformat:"-3" }}</button></form>{% endif %}
+    </div>
+    {% empty %}<p class="muted">Sin conteos.</p>{% endfor %}
+  </section>
+</div>
+<section class="card" style="margin-bottom:18px">
+  <h2>Recepciones recientes</h2>
+  {% for r in receipts %}<div class="row"><a href="{% url 'receipt_detail' r.id %}">#{{ r.id }} · {{ r.supplier }}{% if r.document %} · {{ r.document }}{% endif %}</a><small>{{ r.line_count }} renglones · {{ r.created_at|date:'d/m H:i' }} · {{ r.user.username }}</small></div>{% empty %}<p class="muted">Aún no hay recepciones.</p>{% endfor %}
+</section>
+<section class="card">
+  <h2>Movimientos recientes</h2>
+  <div class="table-wrap"><table>
+    <tr><th>Fecha</th><th>Producto</th><th>Tipo</th><th>Cantidad</th><th>Motivo</th><th>Usuario</th></tr>
+    {% for m in movements %}<tr><td>{{ m.created_at|date:'d/m H:i' }}</td><td>{{ m.product.name }}</td><td>{{ m.get_kind_display }}</td><td>{{ m.quantity|floatformat:"-3" }}</td><td>{{ m.reason }}</td><td>{{ m.user.username }}</td></tr>{% empty %}<tr><td colspan="6">Sin movimientos.</td></tr>{% endfor %}
+  </table></div>
+</section>
+{% endblock %}

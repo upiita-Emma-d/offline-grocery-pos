@@ -1,0 +1,8 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="page-head">
+  <div><p class="eyebrow">FIADO</p><h1>{% if customer %}Editar {{ customer.name }}{% else %}Nuevo cliente{% endif %}</h1><p class="muted">Solo nombre o alias y, si quieres, teléfono. Sin límite, el cliente puede deber cualquier monto.</p></div>
+  <a href="{% url 'customers' %}">← Clientes</a>
+</div>
+<section class="card form-card"><form method="post">{% csrf_token %}{{ form.non_field_errors }}<div class="form-grid">{% for field in form %}<label>{{ field.label }}{{ field }}{{ field.errors }}</label>{% endfor %}</div><button class="primary">Guardar</button></form></section>
+{% endblock %}

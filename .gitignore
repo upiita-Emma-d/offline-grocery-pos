@@ -1,0 +1,14 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Local data: database, backups, uploaded photos, secrets
+data/
+datos/
+.env
+*.sqlite3
+staticfiles/
+
+# Documentation tooling
+.screenshots-venv/
