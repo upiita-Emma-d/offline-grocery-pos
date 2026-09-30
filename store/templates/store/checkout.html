@@ -2,7 +2,7 @@
 {% block title %}Caja · {{ store.name }}{% endblock %}
 {% block content %}
 <div class="page-head">
-  <div><p class="eyebrow">VENTA RÁPIDA</p><h1>Caja</h1><p class="muted">Teclea clave, código de barras o nombre. Un lector tipo teclado también funciona.</p></div>
+  <div><p class="eyebrow">VENTA RÁPIDA</p><h1>Caja</h1><p class="muted">Escanea en cualquier momento: no hace falta tocar el buscador. También puedes teclear la clave, el código o el nombre.</p></div>
   {% if shift %}<span class="pill">Turno #{{ shift.id }} · {{ shift.cashier.username }}</span>{% endif %}
 </div>
 {% if not shift %}
@@ -11,17 +11,19 @@
 <div class="notice warning">El turno pertenece a otra cuenta. Usa su sesión para cobrar.</div>
 {% else %}
 <input type="hidden" id="request-id" value="{{ request_id }}">
+<div id="product-new-url" data-url="{% url 'product_new' %}" data-checkout="{% url 'checkout' %}" hidden></div>
 <div class="checkout-layout">
   <section class="card">
     <label class="label-caps" for="search">BUSCAR PRODUCTO</label>
     <input id="search" type="search" placeholder="Ej. leche, 750105…, LECHE001" autocomplete="off" autofocus>
+    <div id="unknown" class="unknown-code" role="alert" hidden></div>
     <form id="bulk-panel" class="bulk-panel" hidden>
       <p class="label-caps">A GRANEL</p>
       <h2 id="bulk-name"></h2>
       <p class="muted">Pesa en la báscula y escribe los gramos, o el importe que pide el cliente.</p>
       <div class="form-grid">
-        <label>Gramos<input id="bulk-grams" type="number" min="1" step="1" inputmode="numeric" autocomplete="off" placeholder="Ej. 400"></label>
-        <label>Importe $<input id="bulk-amount" type="number" min="0.01" step="0.01" inputmode="decimal" autocomplete="off" placeholder="Ej. 50"></label>
+        <label>Gramos<input id="bulk-grams" data-numpad type="number" min="1" step="1" inputmode="numeric" autocomplete="off" placeholder="Ej. 400"></label>
+        <label>Importe $<input id="bulk-amount" data-numpad type="number" min="0.01" step="0.01" inputmode="decimal" autocomplete="off" placeholder="Ej. 50"></label>
       </div>
       <p id="bulk-summary" class="bulk-summary">—</p>
       <div class="actions"><button class="primary" id="bulk-add" disabled>Agregar</button><button type="button" id="bulk-cancel" class="link-button">Cancelar</button></div>
@@ -37,7 +39,7 @@
     <label id="credit-box" hidden>Cliente de fiado<select id="customer"><option value="">Elige cliente…</option>{% for c, balance in customers %}<option value="{{ c.id }}">{{ c.name }} · debe {{ balance|money }}{% if c.credit_limit is not None %} · límite {{ c.credit_limit|money }}{% endif %}</option>{% endfor %}</select></label>
     {% endif %}
     <div id="cash-box" class="cash-box">
-      <label>Paga con (opcional)<input id="paid-with" type="number" min="0" step="0.01" inputmode="decimal" placeholder="$0.00"></label>
+      <label>Paga con (opcional)<input id="paid-with" data-numpad type="number" min="0" step="0.01" inputmode="decimal" placeholder="$0.00"></label>
       <div class="change"><span>Cambio</span><strong id="change">—</strong></div>
     </div>
     <button id="charge" class="primary wide" disabled>Cobrar venta</button>

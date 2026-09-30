@@ -45,6 +45,11 @@ def main():
                 page.wait_for_url(f'{args.base_url}/')
             return page
 
+        def scan(page, code):
+            # A keyboard-wedge scanner types a key every few milliseconds and ends with Enter.
+            page.keyboard.type(code, delay=5)
+            page.keyboard.press('Enter')
+
         def shot(page, name, full_page=False):
             page.screenshot(path=str(OUT / f'{name}.png'), full_page=full_page)
             print('saved', name)
@@ -73,7 +78,13 @@ def main():
         expect(cashier.locator('#bulk-summary')).to_contain_text('0.350 kg')
         shot(cashier, '03-checkout-bulk')
         cashier.click('#bulk-add')
-        cashier.fill('#paid-with', '200')
+        # Scanner-first (ADR-006): with the focus on the payment selector, a scan still lands in the sale.
+        cashier.focus('#payment')
+        scan(cashier, '0000000000031')
+        expect(cashier.locator('#status')).to_contain_text('Leche')
+        cashier.locator('.cart-item', has_text='Leche').locator('button.step', has_text='+').click()
+        expect(cashier.locator('.cart-item', has_text='Leche').locator('input')).to_have_value('2')
+        cashier.fill('#paid-with', '300')
         expect(cashier.locator('#change')).not_to_have_text('—')
         expect(cashier.locator('#credit-box')).to_be_hidden()  # only shown for store credit
         shot(cashier, '04-checkout-cart', full_page=True)
@@ -81,6 +92,11 @@ def main():
         cashier.wait_for_url('**/ticket/')
         shot(cashier, '05-sale-ticket', full_page=True)
         sale_url = cashier.url
+        # Scanning on the ticket starts the next sale with that product.
+        scan(cashier, '0000000000048')
+        cashier.wait_for_url('**/caja/')
+        expect(cashier.locator('.cart-item', has_text='Gansito')).to_be_visible()
+        cashier.click('#clear')
 
         cashier.goto(f'{args.base_url}/turnos/')
         cashier.select_option('select[name=kind]', 'supplier_payment')
@@ -108,6 +124,32 @@ def main():
         # Owner screens
         owner = new_page(LAPTOP, 'admin', args.owner_password)
         shot(owner, '09-home-owner')
+        # Unknown code at checkout: the owner creates it and comes back with it in the sale.
+        owner.goto(f'{args.base_url}/caja/')
+        new_code = f'0000{random.randint(0, 10**9 - 1):09d}'
+        scan(owner, new_code)
+        expect(owner.locator('#unknown')).to_contain_text('no registrado')
+        shot(owner, '20-checkout-unknown-code')
+        owner.click('#unknown a.button')
+        expect(owner.locator('input[name=barcode]')).to_have_value(new_code)
+        owner.fill('input[name=name]', 'Jugo de naranja 1 L')
+        owner.fill('input[name=price]', '32.50')
+        shot(owner, '21-product-new')
+        owner.locator('#product-form button.primary').click()
+        owner.wait_for_url('**/caja/')
+        expect(owner.locator('.cart-item', has_text='Jugo de naranja')).to_be_visible()
+        owner.click('#clear')
+        # Price change: scanning in the catalog goes straight to the price, and the search is kept.
+        owner.goto(f'{args.base_url}/catalogo/')
+        scan(owner, '0000000000017')
+        owner.wait_for_url('**/catalogo/?q=*')
+        price_box = owner.locator('.quick-price input[name=price]')
+        expect(price_box).to_be_focused()
+        new_price = f'{float(price_box.input_value()) + 1:.2f}'
+        owner.keyboard.type(new_price)
+        owner.keyboard.press('Enter')
+        expect(owner.locator('.notice')).to_contain_text(f'→ ${new_price}')
+        shot(owner, '22-catalog-price-change')
         owner.goto(f'{args.base_url}/turnos/1/corte/')
         shot(owner, '10-shift-report', full_page=True)
         owner.goto(f'{args.base_url}/reportes/')
@@ -146,6 +188,14 @@ def main():
         shot(phone, '18-receiving-phone-unknown-code', full_page=True)
         phone.locator('#create-form button.primary').click()
         expect(phone.locator('#scan-status')).to_contain_text('Agua mineral')
+        # On a touch screen number fields use the app's keypad (the iPhone hides its own with a scanner paired).
+        phone.locator('.receipt-item input[placeholder="Costo c/u"]').first.tap()
+        expect(phone.locator('.numpad')).to_be_visible()
+        for key in ['1', '8', '.', '5']:
+            phone.locator(f'.numpad button[data-key="{key}"]').tap()
+        shot(phone, '23-receiving-phone-numpad')
+        phone.locator('.numpad button[data-key="done"]').tap()
+        expect(phone.locator('.receipt-item input[placeholder="Costo c/u"]').first).to_have_value('18.5')
         phone.fill('#cash-payment', '264')
         phone.click('#confirm')
         phone.wait_for_url('**/recepciones/**')

@@ -13,7 +13,7 @@
     <form method="post" class="count-row">{% csrf_token %}
       <input type="hidden" name="action" value="count"><input type="hidden" name="product_id" value="{{ p.id }}"><input type="hidden" name="q" value="{{ term }}">
       <div><strong>{{ p.name }}</strong><small>{{ p.sku }} · saldo {{ p.stock|floatformat:"-3" }} {{ p.unit_label }}</small></div>
-      <input name="quantity" type="number" min="0" step="0.001" inputmode="decimal" required aria-label="Cantidad contada de {{ p.name }}" placeholder="Contado"{% if exact %} autofocus{% endif %}>
+      <input name="quantity" type="number" min="0" step="0.001" data-numpad required aria-label="Cantidad contada de {{ p.name }}" placeholder="Contado"{% if exact %} autofocus{% endif %}>
       <button>Registrar</button>
     </form>
     {% endfor %}
@@ -42,4 +42,5 @@
     {% for m in movements %}<tr><td>{{ m.created_at|date:'d/m H:i' }}</td><td>{{ m.product.name }}</td><td>{{ m.get_kind_display }}</td><td>{{ m.quantity|floatformat:"-3" }}</td><td>{{ m.reason }}</td><td>{{ m.user.username }}</td></tr>{% empty %}<tr><td colspan="6">Sin movimientos.</td></tr>{% endfor %}
   </table></div>
 </section>
+<script>window.PosScanner.onScan(code => { window.location.assign('{% url 'inventory' %}?q=' + encodeURIComponent(code)); });</script>
 {% endblock %}

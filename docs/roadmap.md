@@ -10,7 +10,8 @@
 - Sales history with filters; daily report with best sellers and margin.
 - ESC/POS network printing (Epson TM-T88V) with accents; customizable ticket header and footer.
 - Install scripts for Windows 10/11 and Linux with autostart and daily verified backups.
-- 49 automated tests plus a browser end-to-end walkthrough (`tools/take_screenshots.py`).
+- Scanner-first UX from field testing (ADR-006): scans work wherever the focus is, scan-to-start on the ticket, beeps, create unknown codes from checkout, steppers and an on-screen numeric keypad for phones, faster product creation and price changes.
+- 55 automated tests plus a browser end-to-end walkthrough (`tools/take_screenshots.py`).
 
 ## Next — pilot at the store
 

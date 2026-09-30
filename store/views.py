@@ -12,7 +12,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.dateparse import parse_date
-from django.utils.http import urlencode
+from django.utils.http import url_has_allowed_host_and_scheme, urlencode
 from django.views.decorators.http import require_GET, require_POST
 
 from .forms import CustomerForm, ProductForm, StoreSettingsForm
@@ -120,7 +120,9 @@ def catalog(request):
     products = Product.objects.all()
     if term:
         products = products.matching(term)
-    return render(request, 'store/catalog.html', {'products': products.with_stock()[:100], 'term': term})
+    products = list(products.with_stock()[:100])
+    # One match (typically a scanned barcode) goes straight to its price box.
+    return render(request, 'store/catalog.html', {'products': products, 'term': term, 'single': term and len(products) == 1})
 
 
 @login_required
@@ -130,16 +132,29 @@ def product_edit(request, product_id=None):
     product = get_object_or_404(Product, pk=product_id) if product_id else None
     old_price = product.price if product else None
     initial = {'barcode': request.GET.get('barcode', '').strip()[:80]} if product is None else None
+    # "next" lets checkout send the owner here for an unknown code and get the product back (ADR-006).
+    next_url = request.POST.get('next') or request.GET.get('next') or ''
+    if not url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
+        next_url = ''
     form = ProductForm(request.POST or None, request.FILES or None, instance=product, initial=initial)
     if request.method == 'POST' and form.is_valid():
         with transaction.atomic():
             saved = form.save()
             if old_price is not None and old_price != saved.price:
                 PriceChange.objects.create(product=saved, old_price=old_price, new_price=saved.price, user=request.user)
-        messages.success(request, 'Producto guardado.')
-        return redirect('catalog')
+        if old_price is not None and old_price != saved.price:
+            messages.success(request, f'{saved.name} guardado. Precio: ${old_price:.2f} → ${saved.price:.2f}.')
+        else:
+            messages.success(request, f'{saved.name} guardado.')
+        if next_url:
+            code = saved.barcode or saved.sku
+            return redirect(f'{next_url}?{urlencode({"scan": code})}' if next_url.startswith(reverse('checkout')) else next_url)
+        if 'another' in request.POST:
+            return redirect('product_new')
+        return redirect(f'{reverse("catalog")}?{urlencode({"q": saved.barcode or saved.sku})}')
     status_changes = product.status_changes.select_related('user').order_by('-id')[:5] if product else []
-    return render(request, 'store/product_form.html', {'form': form, 'product': product, 'status_changes': status_changes})
+    price_history = product.price_changes.select_related('user').order_by('-id')[:5] if product else []
+    return render(request, 'store/product_form.html', {'form': form, 'product': product, 'status_changes': status_changes, 'price_history': price_history, 'next_url': next_url})
 
 
 @login_required
@@ -173,20 +188,26 @@ def product_price(request, product_id):
     if not is_owner(request):
         return HttpResponseForbidden('Solo el propietario puede cambiar precios.')
     product = get_object_or_404(Product, pk=product_id)
+    term = request.POST.get('q', '').strip()[:80]
+    back = f'{reverse("catalog")}?{urlencode({"q": term})}' if term else reverse('catalog')
     try:
         new_price = Decimal(request.POST.get('price', ''))
         if not new_price.is_finite() or new_price < 0 or new_price.as_tuple().exponent < -2:
             raise InvalidOperation
     except (InvalidOperation, TypeError):
         messages.error(request, 'Precio inválido.')
-        return redirect('catalog')
-    if new_price != product.price:
+        return redirect(back)
+    old_price = product.price
+    if new_price != old_price:
         with transaction.atomic():
-            PriceChange.objects.create(product=product, old_price=product.price, new_price=new_price, user=request.user)
+            PriceChange.objects.create(product=product, old_price=old_price, new_price=new_price, user=request.user)
             product.price = new_price
             product.save(update_fields=['price', 'updated_at'])
-    messages.success(request, f'Precio actualizado: {product.name}.')
-    return redirect('catalog')
+        messages.success(request, f'{product.name}: ${old_price:.2f} → ${new_price:.2f}.')
+    else:
+        messages.info(request, f'{product.name} ya costaba ${old_price:.2f}.')
+    # Keep the search so the next price can be changed without searching again.
+    return redirect(back)
 
 
 @login_required

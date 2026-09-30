@@ -17,7 +17,7 @@ These are the business rules the code enforces. Any change to them needs an ADR 
 ## Sales
 
 7. The server prices every sale from the current catalog; the browser never sends amounts. Every request has an idempotency key, so a retry returns the same sale.
-8. Enter resolves an **exact** barcode or SKU and adds one unit; a bulk (kg) product opens the grams/amount capture instead. An unknown code shows a warning and adds nothing. Searching by name is always available.
+8. Enter resolves an **exact** barcode or SKU and adds one unit; a bulk (kg) product opens the grams/amount capture instead. An unknown code shows a warning and adds nothing; the owner can create it from checkout and it is added once saved. Searching by name is always available. A scan works wherever the cursor is, and scanning on the ticket screen starts the next sale (ADR-006).
 9. "Paga con" only computes the change on screen; it is not stored.
 10. Removing a line, lowering a quantity or clearing the sale before charging is logged as a review signal.
 11. A sale is **never edited**. A return — partial or full — is linked to the original folio, requires the owner's authorization (their session, or their password typed on the cashier's screen), never exceeds what was sold, and refunds by the original method: cash leaves the open drawer, store credit reduces the debt, card and transfer are refunded outside the system. Each line goes back to the shelf or is recorded as waste. An exchange is a return plus a new sale.

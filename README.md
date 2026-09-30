@@ -14,12 +14,12 @@ Small stores in Mexico usually run on a notebook: sales in a till, credit ("fiad
 
 | | |
 |---|---|
-| **Fast checkout** | Barcode scanner, typed codes or name search (`coca 600`). Exact matches only; unknown codes never add a "similar" product. |
+| **Scanner-first checkout** | Scans work wherever the cursor is, with beeps and highlighted lines; typed codes or name search (`coca 600`). Exact matches only: an unknown code can be created on the spot by the owner and comes back into the sale. |
 | **Bulk items** | Cheese, ham and produce sold by grams from the scale or by amount ("50 pesos of ham"). |
 | **Cash control** | Shifts opened and closed by counting bills and coins, **blind closing**, printed shift report, cash outs to pay delivery drivers. |
 | **Returns** | Linked to the original ticket, authorized by the owner's password on the cashier's screen, refunded by the original method, restocked or written off. |
 | **Store credit** | Registered customers with credit limits, payments and computed balances. |
-| **Receiving on a phone** | Scan deliveries with a Bluetooth scanner paired to an iPhone or Android; create or assign unknown codes on the spot. |
+| **Receiving on a phone** | Scan deliveries with a Bluetooth scanner paired to an iPhone or Android; an on-screen numeric keypad and − / + buttons work even when iOS hides its keyboard. |
 | **Inventory** | Stock is the sum of movements; counts record differences and are adjusted only with authorization. |
 | **Reports** | Sales history with filters, daily report with best sellers and margin, lines removed before charging. |
 | **Printing** | ESC/POS over the network (verified on an Epson TM-T88V) for tickets, shift openings and shift reports, with accents; browser printing as fallback. |

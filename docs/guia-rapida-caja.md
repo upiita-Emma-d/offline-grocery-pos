@@ -11,16 +11,17 @@
 ## Para cobrar
 
 1. Ve a **Caja**.
-2. **Pasa el lector** por el código de barras. Cada vez que suena, se suma **una pieza**.
+2. **Pasa el lector** por el código de barras. **No hace falta tocar nada antes**: funciona aunque el cursor esté en otro lado.
+   - **Pitido agudo** = se agregó una pieza. **Dos pitidos graves** = ese código no está registrado.
    - Sin lector: escribe el número del código y pulsa **Enter**.
    - Sin código: escribe el nombre (por ejemplo **coca 600**) y toca el producto.
 3. **Queso, jamón, fruta y verdura (a granel):** sale un recuadro verde.
    - Pesa en la báscula y escribe los **gramos** (400 gramos = 400).
    - O escribe el **importe** si te piden "50 pesos de jamón".
    - Pulsa **Agregar**.
-4. Para cambiar la cantidad, escribe en el cuadrito. Para quitar un producto, pulsa **×**.
+4. Para cambiar la cantidad usa **−** y **+**. Para quitar un producto, pulsa **×**.
 5. Elige la **forma de pago**. En efectivo, escribe en **Paga con** el billete que te dieron: te dice el **cambio**.
-6. Pulsa **Cobrar venta**. Sale el ticket. Pulsa **Nueva venta** para el siguiente cliente.
+6. Pulsa **Cobrar venta**. Sale el ticket. Para el siguiente cliente, **escanea su primer producto** y empieza la venta nueva (o pulsa **Nueva venta**).
 
 **Fiado:** en forma de pago elige **Fiado** y el nombre del cliente. Si dice que excede su límite, no se puede fiar más.
 
@@ -53,7 +54,7 @@ Ve a **Fiado**, toca su nombre, escribe cuánto paga y pulsa **Registrar abono**
 
 | Pasa esto | Haz esto |
 |---|---|
-| "Código no registrado" | Búscalo por nombre. Avisa al dueño para que lo registre. |
+| "Código no registrado" (dos pitidos) | Búscalo por nombre. Avisa al dueño para que lo registre. |
 | "Abre tu turno antes de cobrar" | Ve a **Turnos** y abre tu turno con tu usuario. |
 | No sale el ticket | La venta **sí quedó guardada**. Pulsa **Imprimir ticket** o **Reenviar a Epson**. Revisa papel y que la impresora esté prendida. |
 | La pantalla no carga | Revisa que la laptop esté prendida y conectada. Cierra y vuelve a abrir **Tienda POS**. |

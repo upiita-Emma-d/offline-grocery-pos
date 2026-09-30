@@ -21,7 +21,7 @@ A local, independent point of sale for a small store. The priority is recording 
 - A sale is never edited. Returns are linked to the original folio, owner-authorized, never exceed what was sold, and refund by the original method.
 - Tickets keep the original folio and print after saving. A printer failure never rolls back a sale or shift. Never create a second sale to reprint.
 - Closing captures counted cash before showing the expected amount. One open shift at a time. Expected cash is computed only in `services.shift_summary()`.
-- Checkout works with a touch keyboard, typed numbers and a keyboard-wedge scanner. Enter resolves an exact code, never a similar result, and each read adds one unit; a bulk (kg) product opens the grams/amount capture.
+- Checkout works with a touch keyboard, typed numbers and a keyboard-wedge scanner. Enter resolves an exact code, never a similar result, and each read adds one unit; a bulk (kg) product opens the grams/amount capture. Scans are captured wherever the focus is (ADR-006).
 
 ## Development
 

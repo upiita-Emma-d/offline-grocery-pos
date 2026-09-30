@@ -19,3 +19,34 @@
 .ticket-actions .button,.ticket-actions button{white-space:nowrap}
 .ticket h1{letter-spacing:.02em}.ticket .ticket-center{text-align:center;margin:2px 0}.ticket .ticket-line{margin:4px 0}
 .ticket div span b{white-space:nowrap;margin-left:8px}
+
+/* ADR-006: steppers, scan feedback and the on-screen numeric keypad */
+.cart-item{grid-template-columns:minmax(0,1fr) auto 90px 25px}
+.receipt-item{grid-template-columns:minmax(0,1fr) auto 84px 25px}
+.qty{display:flex;align-items:center;gap:4px}
+.qty input{width:64px;text-align:center}
+.step{width:38px;min-height:38px;padding:0;font-size:22px;line-height:1;border-radius:9px}
+.flash{animation:flash 1.2s ease-out}
+@keyframes flash{from{background:var(--green-soft)}to{background:transparent}}
+.error-text{color:#9c2b20;font-weight:700}
+.unknown-code .button{display:inline-block;margin-top:4px}
+.hint{font-size:14px;color:#76530b;margin:-6px 0 12px}
+.touch-only{display:none}
+@media (pointer:coarse){.touch-only{display:block}}
+.numpad{position:fixed;left:0;right:0;bottom:0;z-index:50;background:#fff;border-top:1px solid var(--border);box-shadow:0 -10px 30px #203a2b22;padding:10px 12px calc(12px + env(safe-area-inset-bottom))}
+.numpad-display{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:4px 6px 10px}
+.numpad-label{color:var(--muted);font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.numpad-value{font-size:28px}
+.numpad-keys{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.numpad-keys button{min-height:52px;font-size:24px}
+.numpad-keys .numpad-done{grid-column:1/-1;font-size:18px}
+body.numpad-open main{padding-bottom:360px}
+@media(max-width:520px){.cart-item{grid-template-columns:1fr auto 70px 20px}.receipt-item{grid-template-columns:1fr auto 70px 20px}.qty input{width:48px}.step{width:34px}}
+.ticket-hint{text-align:center;margin:-8px 0 16px}@media print{.ticket-hint{display:none}}
+/* Phones: product name on its own line, controls underneath */
+@media(max-width:520px){
+  .cart-item,.receipt-item{grid-template-columns:1fr auto 20px;row-gap:8px}
+  .cart-item>div:first-child,.receipt-item>div:first-child{grid-column:1/-1}
+  .receipt-item{grid-template-columns:auto 1fr 20px}
+  .receipt-item input[placeholder]{max-width:120px}
+}

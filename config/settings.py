@@ -1,6 +1,7 @@
 """Django settings for the Tienda POS. Configuration comes from environment variables, optionally
 loaded from a `.env` file next to manage.py (see .env.example)."""
 import os
+import sys
 from pathlib import Path
 
 from django.core.management.utils import get_random_secret_key
@@ -21,6 +22,11 @@ def load_env_file(path):
 
 
 load_env_file(BASE_DIR / '.env')
+
+# Tests must never reach a real printer configured in .env; printing tests set a fake host themselves.
+TESTING = len(sys.argv) > 1 and sys.argv[1] == 'test'
+if TESTING:
+    os.environ['POS_PRINTER_HOST'] = ''
 
 # Database, secret key for development, backups and uploaded photos live here, outside Git.
 DATA_DIR = Path(os.environ.get('POS_DATA_DIR') or BASE_DIR / 'data')

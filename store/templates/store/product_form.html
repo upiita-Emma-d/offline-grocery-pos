@@ -1,24 +1,56 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="page-head">
-  <div><p class="eyebrow">CATÁLOGO</p><h1>{% if product %}Editar {{ product.name }}{% else %}Nuevo producto{% endif %}</h1><p class="muted">{% if product %}{% if product.active %}Activo en caja{% else %}Dado de baja: no aparece en caja{% endif %}{% endif %}</p></div>
-  <a href="{% url 'catalog' %}">← Volver</a>
+  <div><p class="eyebrow">CATÁLOGO</p><h1>{% if product %}Editar {{ product.name }}{% else %}Nuevo producto{% endif %}</h1><p class="muted">{% if product %}{% if product.active %}Activo en caja{% else %}Dado de baja: no aparece en caja{% endif %}{% else %}Escanea el código y escribe nombre y precio; lo demás es opcional.{% endif %}</p></div>
+  <a href="{% if next_url %}{{ next_url }}{% else %}{% url 'catalog' %}{% endif %}">← Volver</a>
 </div>
 <section class="card form-card">
-  <form method="post" enctype="multipart/form-data">{% csrf_token %}{{ form.non_field_errors }}
-    <div class="form-grid">{% for field in form %}<label>{{ field.label }}{{ field }}{{ field.errors }}</label>{% endfor %}</div>
-    <button class="primary">Guardar producto</button>
+  <form method="post" enctype="multipart/form-data" id="product-form">{% csrf_token %}{{ form.non_field_errors }}
+    <input type="hidden" name="next" value="{{ next_url }}">
+    <div class="form-grid">
+      <label>{{ form.barcode.label }}{{ form.barcode }}<small>{{ form.barcode.help_text }}</small>{{ form.barcode.errors }}</label>
+      <label>{{ form.name.label }}{{ form.name }}{{ form.name.errors }}</label>
+      <label>{{ form.price.label }}{{ form.price }}{{ form.price.errors }}</label>
+      <label>{{ form.unit.label }}{{ form.unit }}{{ form.unit.errors }}</label>
+    </div>
+    <p class="hint touch-only">¿No aparece el teclado del iPhone? Con el lector conectado, iOS lo oculta: toca el ícono de teclado ⌨ abajo a la derecha, o apaga el lector un momento.</p>
+    <details{% if form.sku.errors or form.cost.errors or form.min_stock.errors %} open{% endif %}><summary>Más datos (opcional): clave, costo, existencia mínima, foto</summary>
+      <div class="form-grid">
+        <label>{{ form.sku.label }}{{ form.sku }}<small>{{ form.sku.help_text }}</small>{{ form.sku.errors }}</label>
+        <label>{{ form.cost.label }}{{ form.cost }}{{ form.cost.errors }}</label>
+        <label>{{ form.min_stock.label }}{{ form.min_stock }}{{ form.min_stock.errors }}</label>
+        <label>{{ form.photo.label }}{{ form.photo }}{{ form.photo.errors }}</label>
+      </div>
+    </details>
+    <div class="actions">
+      <button class="primary">{% if next_url %}Guardar y volver a caja{% else %}Guardar producto{% endif %}</button>
+      {% if not product and not next_url %}<button name="another" value="1">Guardar y dar de alta otro</button>{% endif %}
+    </div>
   </form>
 </section>
 {% if product %}
-<section class="card form-card" style="margin-top:20px">
-  <h2>{% if product.active %}Dar de baja{% else %}Reactivar{% endif %}</h2>
-  <p class="muted">{% if product.active %}La baja conserva el historial y requiere existencia cero.{% else %}La reactivación vuelve a ofrecer el producto en caja.{% endif %}</p>
-  <form method="post" action="{% url 'product_status' product.id %}">{% csrf_token %}
-    <label>Motivo<input name="reason" maxlength="200" minlength="4" required></label>
-    <button>{% if product.active %}Dar de baja{% else %}Reactivar producto{% endif %}</button>
-  </form>
-  {% for change in status_changes %}<p class="muted">{{ change.get_action_display }} · {{ change.created_at|date:'d/m/Y H:i' }} · {{ change.user.username }} · {{ change.reason }}</p>{% endfor %}
-</section>
+<div class="grid-2" style="margin-top:20px">
+  <section class="card">
+    <h2>Historial de precios</h2>
+    {% for change in price_history %}<div class="row"><span>{{ change.old_price|money }} → <strong>{{ change.new_price|money }}</strong><small>{{ change.created_at|date:'d/m/Y H:i' }} · {{ change.user.username }}</small></span></div>{% empty %}<p class="muted">Sin cambios de precio.</p>{% endfor %}
+  </section>
+  <section class="card">
+    <h2>{% if product.active %}Dar de baja{% else %}Reactivar{% endif %}</h2>
+    <p class="muted">{% if product.active %}La baja conserva el historial y requiere existencia cero.{% else %}La reactivación vuelve a ofrecer el producto en caja.{% endif %}</p>
+    <form method="post" action="{% url 'product_status' product.id %}">{% csrf_token %}
+      <label>Motivo<input name="reason" maxlength="200" minlength="4" required></label>
+      <button>{% if product.active %}Dar de baja{% else %}Reactivar producto{% endif %}</button>
+    </form>
+    {% for change in status_changes %}<p class="muted">{{ change.get_action_display }} · {{ change.created_at|date:'d/m/Y H:i' }} · {{ change.user.username }} · {{ change.reason }}</p>{% endfor %}
+  </section>
+</div>
 {% endif %}
+<script>
+  // Scanning fills the barcode field instead of submitting the half-filled form (ADR-006).
+  (() => {
+    const form = document.getElementById('product-form');
+    window.PosScanner.onScan(code => { form.elements.barcode.value = code; form.elements.name.focus(); });
+    {% if not product %}(form.elements.barcode.value ? form.elements.name : form.elements.barcode).focus();{% else %}form.elements.price.focus(); form.elements.price.select();{% endif %}
+  })();
+</script>
 {% endblock %}

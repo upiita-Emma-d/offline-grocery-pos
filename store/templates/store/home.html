@@ -34,4 +34,5 @@
     {% for p in low %}<div class="row"><span>{{ p.name }}</span><strong>{{ p.stock|floatformat:"-3" }} {{ p.unit_label }}</strong></div>{% empty %}<p class="muted">Sin alertas de stock mínimo.</p>{% endfor %}
   </section>
 </div>
+<script>window.PosScanner.startSale('{% url 'checkout' %}');</script>
 {% endblock %}

@@ -22,6 +22,7 @@
   let searchTimer;
   let assignTimer;
   let scanQueue = Promise.resolve();
+  let lastAddedId = null;
 
   // 1.005 * 1000 is not an exact integer in floating point; tolerate the representation error.
   function hasThreeDecimalsAtMost(value) { return Math.abs(value * 1000 - Math.round(value * 1000)) < 1e-6; }
@@ -54,8 +55,9 @@
   function addProduct(product) {
     const current = received.get(product.id);
     if (current) current.quantity += 1;
-    else received.set(product.id, { id: product.id, name: product.name, sku: product.sku, unit_label: product.unit_label, quantity: 1, cost: '' });
+    else received.set(product.id, { id: product.id, name: product.name, sku: product.sku, unit_label: product.unit_label, is_bulk: product.is_bulk, quantity: 1, cost: '' });
     setText(scanStatus, `+1 ${product.name}`);
+    lastAddedId = product.id;
     render(); search.focus();
   }
   function render() {
@@ -63,14 +65,23 @@
     if (!received.size) linesBox.append(el('p', 'muted', 'Escanea el primer producto.'));
     received.forEach(p => {
       units += p.quantity;
-      const row = el('div', 'cart-item receipt-item');
+      const row = el('div', 'cart-item receipt-item' + (p.id === lastAddedId ? ' flash' : ''));
       const name = el('div', '', p.name); name.append(el('small', '', `${p.sku} · ${p.unit_label}`));
-      const quantity = el('input'); quantity.type = 'number'; quantity.min = '0.001'; quantity.step = '0.001'; quantity.inputMode = 'decimal'; quantity.value = p.quantity; quantity.setAttribute('aria-label', `Cantidad de ${p.name}`);
-      quantity.addEventListener('change', () => { const value = Number(quantity.value); if (!Number.isFinite(value) || value <= 0 || !hasThreeDecimalsAtMost(value)) { quantity.value = p.quantity; return; } p.quantity = value; render(); });
-      const cost = el('input'); cost.type = 'number'; cost.min = '0'; cost.step = '0.01'; cost.inputMode = 'decimal'; cost.placeholder = 'Costo c/u'; cost.value = p.cost || ''; cost.setAttribute('aria-label', `Costo por ${p.unit_label} de ${p.name}`);
+      const quantity = el('input'); quantity.type = 'number'; quantity.min = '0.001'; quantity.step = p.is_bulk ? '0.001' : '1'; quantity.dataset.numpad = ''; quantity.value = p.quantity; quantity.setAttribute('aria-label', `Cantidad de ${p.name}`);
+      quantity.addEventListener('change', () => { const value = Number(quantity.value); if (!Number.isFinite(value) || value <= 0 || !hasThreeDecimalsAtMost(value)) { quantity.value = p.quantity; return; } p.quantity = value; lastAddedId = null; render(); });
+      const quantityBox = el('div', 'qty');
+      if (p.is_bulk) quantityBox.append(quantity);
+      else {
+        const minus = el('button', 'step', '−'); minus.type = 'button'; minus.setAttribute('aria-label', `Una menos de ${p.name}`);
+        minus.addEventListener('click', () => { if (p.quantity > 1) { p.quantity -= 1; lastAddedId = null; render(); } });
+        const plus = el('button', 'step', '+'); plus.type = 'button'; plus.setAttribute('aria-label', `Una más de ${p.name}`);
+        plus.addEventListener('click', () => { p.quantity += 1; lastAddedId = null; render(); });
+        quantityBox.append(minus, quantity, plus);
+      }
+      const cost = el('input'); cost.type = 'number'; cost.min = '0'; cost.step = '0.01'; cost.dataset.numpad = ''; cost.placeholder = 'Costo c/u'; cost.value = p.cost || ''; cost.setAttribute('aria-label', `Costo por ${p.unit_label} de ${p.name}`);
       cost.addEventListener('change', () => { p.cost = cost.value; saveDraft(); });
       const remove = el('button', 'link-button', '×'); remove.type = 'button'; remove.setAttribute('aria-label', `Quitar ${p.name}`); remove.addEventListener('click', () => { received.delete(p.id); render(); });
-      row.append(name, quantity, cost, remove); linesBox.append(row);
+      row.append(name, quantityBox, cost, remove); linesBox.append(row);
     });
     setText(document.getElementById('total'), String(Math.round(units * 1000) / 1000));
     confirmButton.disabled = !received.size;
@@ -112,18 +123,21 @@
     try {
       const response = await fetch(`/api/products/lookup/?code=${encodeURIComponent(code)}`);
       const data = await response.json();
-      if (response.status === 404) { showUnknown(code); return; }
+      if (response.status === 404) { showUnknown(code); window.PosScanner.beep(false); return; }
       if (!response.ok) throw new Error(data.error || 'No se pudo leer el código.');
-      hideUnknown(); addProduct(data.product);
-    } catch (error) { setText(scanStatus, error.message); }
+      hideUnknown(); addProduct(data.product); window.PosScanner.beep(true);
+    } catch (error) { setText(scanStatus, error.message); window.PosScanner.beep(false); }
   }
+  function queueLookup(code) { scanQueue = scanQueue.then(() => lookupCode(code)); }
+  // Scans are recognized wherever the focus is (scanner.js), e.g. while typing the supplier.
+  window.PosScanner.onScan(code => { search.value = ''; results.replaceChildren(); queueLookup(code); });
   search.addEventListener('keydown', e => {
     if (e.key !== 'Enter') return;
     e.preventDefault(); clearTimeout(searchTimer);
     const code = search.value.trim();
     if (!code) return;
     search.value = ''; results.replaceChildren();
-    scanQueue = scanQueue.then(() => lookupCode(code));
+    queueLookup(code);
   });
 
   document.getElementById('show-create').addEventListener('click', () => { assignPanel.hidden = true; createForm.hidden = false; createForm.elements.name.focus(); });

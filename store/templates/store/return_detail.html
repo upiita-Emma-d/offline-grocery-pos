@@ -12,4 +12,5 @@
   <p>Medio: {{ record.get_method_display }}{% if record.sale.customer %} · {{ record.sale.customer.name }}{% endif %}</p>
   <p>Motivo: {{ record.reason }}</p>
 </article>
+<script>window.PosScanner.startSale('{% url 'checkout' %}');</script>
 {% endblock %}

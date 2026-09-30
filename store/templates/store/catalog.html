@@ -1,26 +1,28 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="page-head">
-  <div><p class="eyebrow">CATÁLOGO</p><h1>Productos</h1><p class="muted">Busca y cambia un precio en un solo paso.</p></div>
+  <div><p class="eyebrow">CATÁLOGO</p><h1>Productos</h1><p class="muted">Escanea o busca un producto y cambia su precio aquí mismo. Los tickets anteriores no cambian.</p></div>
   <a class="primary button" href="{% url 'product_new' %}">+ Nuevo producto</a>
 </div>
-<form class="search-bar" method="get"><input name="q" value="{{ term }}" placeholder="Clave, código o nombre" autofocus><button>Buscar</button></form>
+<form class="search-bar" method="get"><input name="q" value="{{ term }}" placeholder="Escanea, o escribe clave, código o nombre" autocomplete="off"{% if not single %} autofocus{% endif %}><button>Buscar</button>{% if term %}<a class="button" href="{% url 'catalog' %}">Ver todos</a>{% endif %}</form>
+{% if term and not products %}<p class="notice warning">Sin coincidencias para «{{ term }}».{% if term.isdigit %} <a href="{% url 'product_new' %}?barcode={{ term|urlencode }}">Dar de alta el código {{ term }}</a>{% endif %}</p>{% endif %}
 <div class="card table-wrap">
   <table>
-    <thead><tr><th>Producto</th><th>Código</th><th>Precio rápido</th><th>Existencia</th><th></th></tr></thead>
+    <thead><tr><th>Producto</th><th>Código</th><th>Precio de venta</th><th>Existencia</th><th></th></tr></thead>
     <tbody>
     {% for p in products %}
       <tr>
         <td><strong>{{ p.name }}</strong><small>{{ p.sku }}{% if not p.active %} · Inactivo{% endif %}</small></td>
         <td>{{ p.barcode|default:'—' }}</td>
-        <td><form class="quick-price" method="post" action="{% url 'product_price' p.id %}">{% csrf_token %}<span>$</span><input name="price" type="number" step="0.01" min="0" value="{{ p.price }}" aria-label="Nuevo precio de {{ p.name }}"><button>Guardar</button></form></td>
+        <td><form class="quick-price" method="post" action="{% url 'product_price' p.id %}">{% csrf_token %}<input type="hidden" name="q" value="{{ term }}"><span>$</span><input name="price" type="number" step="0.01" min="0" value="{{ p.price }}" data-numpad onfocus="this.select()" aria-label="Precio de {{ p.name }}"{% if single %} autofocus{% endif %}><button>Guardar</button></form></td>
         <td>{{ p.stock|floatformat:"-3" }} {{ p.unit_label }}</td>
         <td><a href="{% url 'product_edit' p.id %}">Editar</a></td>
       </tr>
     {% empty %}
-      <tr><td colspan="5">Sin productos. Crea el primero.</td></tr>
+      <tr><td colspan="5">{% if term %}Sin resultados.{% else %}Sin productos. Crea el primero.{% endif %}</td></tr>
     {% endfor %}
     </tbody>
   </table>
 </div>
+<script>window.PosScanner.onScan(code => { window.location.assign('{% url 'catalog' %}?q=' + encodeURIComponent(code)); });</script>
 {% endblock %}

@@ -18,12 +18,18 @@ Only one shift can be open at a time. The cash in the drawer is the responsibili
 
 ![Checkout with cart](images/04-checkout-cart.png)
 
-- **Scan** a barcode or **type** it and press Enter: each read adds one unit. An unknown code shows a warning and adds nothing.
-- **Search by name**: type a few words in any order (`coca 600`) and tap the result.
-- Change a quantity in the box; **×** removes a line. Removals are logged for the owner.
+- **Scan at any time.** The cursor does not need to be in the search box: the POS recognizes the scanner by its typing speed wherever the focus is. A short high beep and a highlighted line confirm each product; a low double beep means the code is unknown.
+- Or **type** a code and press Enter: each read adds one unit. An unknown code adds nothing (see below).
+- **Search by name**: type a few words in any order (`coca 600`); use ↓ and Enter, or tap the result.
+- **− / +** change the quantity without a keyboard; **×** removes a line. Removals are logged for the owner.
+- After charging, **scanning the next product on the ticket screen starts the next sale**.
 - **Paga con** shows the change to hand back (cash only).
 - **Forma de pago:** Efectivo, Tarjeta, Transferencia or Fiado (store credit, then pick the customer).
 - **Cobrar venta** saves the sale, prints the ticket and shows it on screen.
+
+**Unknown code:** the warning appears right under the search box. The owner gets **Dar de alta este código**: the product form opens with the barcode filled in, and after saving the POS returns to checkout with the product already in the sale. A cashier is told to search by name or ask the owner.
+
+![Unknown code at checkout](images/20-checkout-unknown-code.png)
 
 **Bulk products (a granel)** such as cheese, ham or produce open a small panel instead of adding 1 kg: type the **grams** from the scale, or the **amount** the customer asks for ("50 pesos of ham"). The server computes the exact price.
 
@@ -78,7 +84,9 @@ Open the POS on any phone connected to the store Wi-Fi (`http://<laptop-ip>:8008
 
 An **unknown barcode** never adds a similar product. The owner can **create** the product right there or **assign** the code to an existing product that has no barcode yet, which is how the reference catalog gets its real barcodes.
 
-<img src="images/18-receiving-phone-unknown-code.png" alt="Receiving on a phone with an unknown code" width="320"> <img src="images/19-receipt-detail-phone.png" alt="Confirmed receipt on a phone" width="320">
+<img src="images/18-receiving-phone-unknown-code.png" alt="Receiving on a phone with an unknown code" width="300"> <img src="images/23-receiving-phone-numpad.png" alt="On-screen numeric keypad" width="300"> <img src="images/19-receipt-detail-phone.png" alt="Confirmed receipt on a phone" width="300">
+
+**iPhone + Bluetooth scanner:** iOS treats the scanner as a hardware keyboard and hides its own keyboard. Number fields (quantity, cost, price, cash) therefore open the POS's own **numeric keypad**, and **− / +** adjust quantities. To type text such as a new product's name, tap the keyboard icon ⌨ at the bottom right of the iPhone screen, or switch the scanner off for a moment. Many scanners also have an "iOS keyboard toggle" setup barcode in their manual.
 
 Confirm once at the end. If the connection drops, pressing confirm again never duplicates stock, and an unconfirmed receipt is recovered after reloading the page.
 
@@ -90,9 +98,15 @@ Scan or search the product and type how many are physically there. The count rec
 
 ### Catalog — *Productos*
 
-![Catalog](images/13-catalog.png)
+![Price change](images/22-catalog-price-change.png)
 
-Change a price in one step (the history is kept and old tickets never change). **Editar** opens the full product: SKU, barcode, name, unit (piece, kg for bulk, liter, pack), price, cost, minimum stock. **Dar de baja** removes it from checkout; it needs zero stock and a reason and can be reversed.
+**Change a price:** open **Productos** and scan the product (or search it). A single match puts the cursor straight in its price box: type the new price and press Enter. The message shows the old and new price, the search is kept for the next product, the history is saved and old tickets never change. **Editar** shows the price history.
+
+**Add a product:** **+ Nuevo producto**, scan the barcode (the scan fills the field and jumps to the name), type name and price, choose the unit (piece, kg for bulk, liter, pack). The internal SKU, cost, minimum stock and photo are optional under "Más datos"; an empty SKU becomes the barcode or an automatic `P00001`-style code. **Guardar y dar de alta otro** keeps you in the form for the next product.
+
+![New product](images/21-product-new.png)
+
+**Dar de baja** removes a product from checkout; it needs zero stock and a reason and can be reversed.
 
 ### Sales history and daily report — *Ventas*, *Reporte*
 

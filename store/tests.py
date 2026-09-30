@@ -633,3 +633,47 @@ class DemoDataTests(TestCase):
         self.assertEqual(Product.objects.get(barcode='0000000000055').unit, 'kg')
         with self.assertRaises(Exception):
             call_command('seed_demo', owner_password='x', cashier_password='y', stdout=mock.MagicMock())
+
+
+
+class ProductFlowTests(TestCase):
+    """UX flows from field testing (ADR-006): creating and repricing products quickly."""
+
+    def setUp(self):
+        self.owner = User.objects.create_superuser(username='owner', password='OwnerPassword123!')
+        self.client.force_login(self.owner)
+
+    def test_sku_is_optional_and_generated(self):
+        self.client.post(reverse('product_new'), {'barcode': '0000000000017', 'name': 'Coca-Cola 600 ml', 'price': '22', 'unit': 'piece', 'min_stock': '0'})
+        self.assertEqual(Product.objects.get(name='Coca-Cola 600 ml').sku, '0000000000017')
+        self.client.post(reverse('product_new'), {'barcode': '', 'name': 'Bolillo', 'price': '3', 'unit': 'piece', 'min_stock': '0'})
+        self.assertRegex(Product.objects.get(name='Bolillo').sku, r'^P\d{5}$')
+
+    def test_unknown_code_from_checkout_returns_with_the_new_product(self):
+        page = self.client.get(reverse('product_new'), {'barcode': '0000000000099', 'next': reverse('checkout')})
+        self.assertContains(page, 'value="0000000000099"')
+        response = self.client.post(reverse('product_new'), {'barcode': '0000000000099', 'name': 'Agua 1 L', 'price': '15', 'unit': 'piece', 'min_stock': '0', 'next': reverse('checkout')})
+        self.assertRedirects(response, f"{reverse('checkout')}?scan=0000000000099", fetch_redirect_response=False)
+
+    def test_next_never_redirects_to_another_site(self):
+        response = self.client.post(reverse('product_new'), {'barcode': '123456', 'name': 'Prueba', 'price': '1', 'unit': 'piece', 'min_stock': '0', 'next': 'https://evil.example/'})
+        self.assertEqual(response['Location'], f"{reverse('catalog')}?q=123456")
+
+    def test_save_and_create_another(self):
+        response = self.client.post(reverse('product_new'), {'barcode': '', 'name': 'Tortillas 1 kg', 'price': '24', 'unit': 'kg', 'min_stock': '0', 'another': '1'})
+        self.assertRedirects(response, reverse('product_new'), fetch_redirect_response=False)
+
+    def test_price_change_keeps_the_search_and_reports_old_and_new_price(self):
+        coke = Product.objects.create(sku='COCA600', barcode='0000000000017', name='Coca-Cola 600 ml', price=Decimal('22.00'))
+        response = self.client.post(reverse('product_price', args=[coke.id]), {'price': '24.00', 'q': 'coca'}, follow=True)
+        self.assertEqual(response.redirect_chain[-1][0], f"{reverse('catalog')}?q=coca")
+        self.assertContains(response, '$22.00 → $24.00')
+        self.assertTrue(self.client.get(reverse('catalog'), {'q': '0000000000017'}).context['single'])
+        self.assertContains(self.client.get(reverse('product_edit', args=[coke.id])), 'Historial de precios')
+
+
+
+class TestIsolationTests(TestCase):
+    def test_tests_never_use_the_printer_from_env(self):
+        # A real printer in .env must not receive test tickets (it happened once during development).
+        self.assertEqual(services.printer_settings()[0], '')

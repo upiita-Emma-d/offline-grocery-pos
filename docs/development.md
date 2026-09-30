@@ -36,7 +36,9 @@ Printing tests replace `socket.create_connection` with a fake printer; they neve
 
 ### Browser walkthrough and screenshots
 
-`tools/take_screenshots.py` drives the real UI with Playwright and Microsoft Edge: it searches, scans, weighs cheese, charges, records a cash out, authorizes a return, counts stock and receives goods on a phone-sized screen. It fails if the browser reports a JavaScript error or the server answers 5xx, and it refreshes the images in `docs/images/`.
+`tools/take_screenshots.py` drives the real UI with Playwright and Microsoft Edge: it searches, scans, weighs cheese, charges, records a cash out, authorizes a return, counts stock and receives goods on a phone-sized screen. It also checks the scanner-first behavior (scans with the focus elsewhere, scan-to-start on the ticket, creating an unknown code from checkout) and the phone numeric keypad. It fails if the browser reports a JavaScript error or the server answers 5xx, and it refreshes the images in `docs/images/`.
+
+Start the demo server with the network printer disabled (`POS_PRINTER_HOST=" "`), otherwise a printer configured in `.env` receives the demo tickets. The test runner always ignores it.
 
 ```bash
 python -m venv .screenshots-venv && .screenshots-venv/bin/pip install playwright

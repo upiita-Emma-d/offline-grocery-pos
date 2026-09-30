@@ -6,6 +6,7 @@
 - [ADR-002](adr/ADR-002-receiving-and-hardware.md) — One computer as server and register; grouped, idempotent goods receipts; unknown codes assigned or created while receiving; adjustments apply the recorded count difference.
 - [ADR-003](adr/ADR-003-bulk-sales.md) — Bulk products sold by grams or amount; closed unit list; one product per selling unit.
 - [ADR-004](adr/ADR-004-cash-control-returns-credit.md) — Cash outs, owner-authorized returns, cash count by denomination, printable shift report, history and daily report, costs, removed-line log, store credit.
+- [ADR-006](adr/ADR-006-scanner-first-ux.md) — Scans captured wherever the focus is; scan on the ticket starts a new sale; beeps; create unknown codes from checkout; steppers and on-screen numeric keypad; optional SKU; price changes keep the search.
 - [ADR-005](adr/ADR-005-english-codebase-and-deployment.md) — English code and docs with Spanish UI; waitress + WhiteNoise in production; install scripts for Windows and Linux; ESC/POS network printing with accents.
 
 ## Closed questions

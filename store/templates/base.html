@@ -5,9 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{% block title %}{{ store.name }} · POS{% endblock %}</title>
 <link rel="stylesheet" href="{% static 'store/style.css' %}">
+<script src="{% static 'store/scanner.js' %}"></script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23156b4c'/%3E%3C/svg%3E">
 </head>
-<body>
+<body{% if user.is_superuser %} data-owner{% endif %}>
 <header class="topbar">
   <a class="brand" href="{% url 'home' %}">◼ {{ store.name|upper }} <span>POS</span></a>
   {% if user.is_authenticated %}
@@ -31,5 +32,6 @@
   {% if messages %}<div class="messages">{% for message in messages %}<div class="notice {{ message.tags }}">{{ message }}</div>{% endfor %}</div>{% endif %}
   {% block content %}{% endblock %}
 </main>
+<script src="{% static 'store/numpad.js' %}"></script>
 </body>
 </html>

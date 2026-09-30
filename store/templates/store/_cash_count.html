@@ -2,8 +2,8 @@
   <legend>{{ title }}</legend>
   <p class="muted">Escribe cuántas piezas hay de cada una; el sistema suma.</p>
   <div class="cash-count-grid">
-    {% for name, label, value in denominations %}<label>{{ label }}<input name="{{ name }}" type="number" min="0" step="1" inputmode="numeric" data-value="{{ value }}" placeholder="0"></label>{% endfor %}
+    {% for name, label, value in denominations %}<label>{{ label }}<input name="{{ name }}" type="number" min="0" step="1" data-numpad data-value="{{ value }}" placeholder="0"></label>{% endfor %}
   </div>
   <div class="cash-count-total"><span>Total</span><strong data-total>$0.00</strong></div>
-  <details><summary>Capturar solo el total</summary><label>Total en efectivo<input name="amount" type="number" min="0" step="0.01" inputmode="decimal" data-amount></label></details>
+  <details><summary>Capturar solo el total</summary><label>Total en efectivo<input name="amount" type="number" min="0" step="0.01" data-numpad data-amount></label></details>
 </fieldset>

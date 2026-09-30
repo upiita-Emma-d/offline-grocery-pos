@@ -2,7 +2,7 @@
 {% block title %}Recepción · {{ store.name }}{% endblock %}
 {% block content %}
 <div class="page-head">
-  <div><p class="eyebrow">ENTRADA DE MERCANCÍA</p><h1>Recepción</h1><p class="muted">Escanea o teclea cada código y pulsa Enter: cada lectura suma una unidad. El costo por pieza es opcional. Confirma una sola vez al terminar.</p></div>
+  <div><p class="eyebrow">ENTRADA DE MERCANCÍA</p><h1>Recepción</h1><p class="muted">Escanea cada producto (no hace falta tocar el buscador): cada lectura suma una unidad. El costo por pieza es opcional. Confirma una sola vez al terminar.</p></div>
   <a href="{% url 'inventory' %}">← Inventario</a>
 </div>
 <input type="hidden" id="request-id" value="{{ request_id }}">
@@ -20,8 +20,9 @@
       <div class="actions"><button type="button" id="show-create">Crear producto nuevo</button><button type="button" id="show-assign">Asignar a producto sin código</button><button type="button" id="dismiss" class="link-button">Descartar</button></div>
       <form id="create-form" class="stack" hidden>
         <label>Nombre<input name="name" maxlength="160" required></label>
+        <p class="hint touch-only">¿No aparece el teclado del iPhone? Con el lector conectado, iOS lo oculta: toca el ícono de teclado ⌨ abajo a la derecha, o apaga el lector un momento.</p>
         <div class="form-grid">
-          <label>Precio de venta<input name="price" type="number" min="0" step="0.01" inputmode="decimal" required></label>
+          <label>Precio de venta<input name="price" data-numpad type="number" min="0" step="0.01" inputmode="decimal" required></label>
           <label>Unidad<select name="unit"><option value="piece">pieza</option><option value="kg">kg (a granel)</option><option value="liter">litro</option><option value="pack">paquete</option></select></label>
         </div>
         <label>Clave interna (opcional; vacía usa el código)<input name="sku" maxlength="40"></label>
@@ -38,7 +39,7 @@
     <div class="row"><h2>Mercancía recibida</h2><button id="clear" class="link-button" type="button">Vaciar</button></div>
     <div id="lines"><p class="muted">Escanea el primer producto.</p></div>
     <div class="total"><span>Unidades</span><strong id="total">0</strong></div>
-    <label>Pagado desde la caja $ (opcional)<input id="cash-payment" type="number" min="0" step="0.01" inputmode="decimal" placeholder="Si se le pagó al repartidor del cajón"></label>
+    <label>Pagado desde la caja $ (opcional)<input id="cash-payment" data-numpad type="number" min="0" step="0.01" inputmode="decimal" placeholder="Si se le pagó al repartidor del cajón"></label>
     <button id="confirm" class="primary wide" disabled>Confirmar recepción</button>
     <p id="status" class="muted" role="status"></p>
   </section>
